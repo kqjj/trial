@@ -22,7 +22,7 @@ WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 
 def start(update: Update, context: CallbackContext) -> None:
     user_first_name = update.effective_user.first_name
-    update.message.reply_text(f"Welcome {user_first_name}, Send me YouTube Video url, I will give video in your preferred format.")
+    update.message.reply_text(f"Welcome {user_first_name}, Send me YouTube Video URL, and I will give you the video in your preferred format.")
     logger.info(f"User {user_first_name} started the bot.")
 
 def handle_link(update: Update, context: CallbackContext) -> None:
@@ -30,7 +30,7 @@ def handle_link(update: Update, context: CallbackContext) -> None:
     logger.info(f"Received URL: {url}")
 
     if "youtube.com" not in url and "youtu.be" not in url:
-        update.message.reply_text("Please send me YouTube link only.")
+        update.message.reply_text("Please send me a valid YouTube link.")
         logger.warning("Invalid URL received.")
         return
 
@@ -60,7 +60,7 @@ def download_and_merge_video_audio(url, resolution):
     cmd = [
         'ffmpeg', '-i', video_file, '-i', audio_file, '-c:v', 'copy', '-c:a', 'aac', '-strict', 'experimental', output_file
     ]
-    subprocess.run(cmd)
+    subprocess.run(cmd, check=True)
 
     os.remove(video_file)
     os.remove(audio_file)
@@ -72,7 +72,11 @@ def button(update: Update, context: CallbackContext) -> None:
     query.answer()
 
     resolution = query.data
-    url = context.user_data['url']
+    url = context.user_data.get('url', '')
+    if not url:
+        query.edit_message_text(text="No URL found. Please start again.")
+        return
+
     query.edit_message_text(text=f"Please wait: Downloading {resolution} format")
 
     try:
@@ -105,3 +109,4 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
+    
