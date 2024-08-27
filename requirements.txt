@@ -1,0 +1,4 @@
+python-telegram-bot==13.11
+pytube==12.1.0
+python-dotenv==0.19.2
+ffmpeg-python==0.2.0
